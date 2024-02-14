@@ -1,0 +1,90 @@
+### EDIT SCHEMA
+<A>: string @index(fulltext, term) .
+<B>: string @index(fulltext, term) .
+<ComboResult>: string @index(fulltext, term) .
+<isNew>: bool .
+<name>: string @index(fulltext, term) .
+<encodedName>: string @index(fulltext, term) .
+type <Combo> {
+	A
+	B
+	ComboResult
+}
+type <Result> {
+	isNew
+	name
+	encodedName
+}
+
+### Load data
+{
+  set {
+    _:water <dgraph.type> "Result" .
+    _:water <name> "Water" .
+    _:water <encodedName> "Water" .
+    _:water <isNew> "false" .
+
+    _:fire <dgraph.type> "Result" .
+    _:fire <name> "Fire" .
+    _:fire <encodedName> "Fire" .
+    _:fire <isNew> "false" .
+
+  	_:wind <dgraph.type> "Result" .
+    _:wind <name> "Wind" .
+    _:wind <encodedName> "Wind" .
+    _:wind <isNew> "false" .
+
+  	_:earth <dgraph.type> "Result" .
+    _:earth <name> "Earth" .
+    _:earth <encodedName> "Earth" .
+    _:earth <isNew> "false" .
+
+  	_:steam <dgraph.type> "Result" .
+    _:steam <name> "Steam" .
+    _:steam <encodedName> "Steam" .
+    _:steam <isNew> "false" .
+
+  	_:combo_steam <dgraph.type> "Combo" .
+    _:combo_steam <A> "Water" .
+    _:combo_steam <B> "Fire" .
+    _:combo_steam <ComboResult> "Steam" .
+  }
+}
+
+### RESPONSE
+{
+  "data": {
+    "code": "Success",
+    "message": "Done",
+    "queries": null,
+    "uids": {
+      "combo_steam": "0x27d8",
+      "earth": "0x27d6",
+      "fire": "0x27da",
+      "steam": "0x27d7",
+      "water": "0x27d9",
+      "wind": "0x27db"
+    }
+  },
+  "extensions": {
+    "server_latency": {
+      "parsing_ns": 20720,
+      "processing_ns": 1634777,
+      "assign_timestamp_ns": 361801,
+      "total_ns": 2128219
+    },
+    "txn": {
+      "start_ts": 32864,
+      "commit_ts": 32865,
+      "preds": [
+        "1-0-A",
+        "1-0-B",
+        "1-0-ComboResult",
+        "1-0-dgraph.type",
+        "1-0-encodedName",
+        "1-0-isNew",
+        "1-0-name"
+      ]
+    }
+  }
+}

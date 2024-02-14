@@ -1,0 +1,92 @@
+### FIRST WORKING QUERY
+{
+  queryCombo(func: type(Combo)) {
+    A {name}
+    B {name}
+    ComboResult {name}
+  }
+}
+
+#### RESPONSE
+{
+  "data": {
+    "queryCombo": [
+      {
+        "A": {
+          "name": "Water"
+        },
+        "B": {
+          "name": "Fire"
+        },
+        "ComboResult": {
+          "name": "Steam"
+        }
+      }
+    ]
+  },
+  "extensions": {
+    "server_latency": {
+      "parsing_ns": 26970,
+      "processing_ns": 303423,
+      "encoding_ns": 18500,
+      "assign_timestamp_ns": 297214,
+      "total_ns": 698777
+    },
+    "txn": {
+      "start_ts": 31906
+    },
+    "metrics": {
+      "num_uids": {
+        "A": 1,
+        "B": 1,
+        "ComboResult": 1,
+        "_total": 6,
+        "dgraph.type": 0,
+        "name": 3
+      }
+    }
+  }
+}
+
+
+### BETTER FIRST WORKING QUERY
+# get the number of nodes with a combination of input A and B
+{
+  queryCombo(func: type(Combo)) @filter(((eq(A, "Water") AND eq(B, "Fire")) OR (eq(A, "Fire") AND eq(B, "Water")))){
+    uid
+  }
+}
+
+
+#### Response
+{
+  "data": {
+    "queryCombo": [
+      {
+        "uid": "0x27c9"
+      }
+    ]
+  },
+  "extensions": {
+    "server_latency": {
+      "parsing_ns": 33960,
+      "processing_ns": 350172,
+      "encoding_ns": 13810,
+      "assign_timestamp_ns": 309451,
+      "total_ns": 764493
+    },
+    "txn": {
+      "start_ts": 32734
+    },
+    "metrics": {
+      "num_uids": {
+        "": 3,
+        "A": 2,
+        "B": 2,
+        "_total": 8,
+        "dgraph.type": 0,
+        "uid": 1
+      }
+    }
+  }
+}
