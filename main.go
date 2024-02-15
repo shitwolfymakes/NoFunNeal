@@ -10,7 +10,10 @@ import (
 	"log"
 )
 
+var dgraphClient *dgo.Dgraph
+
 func main() {
+
 	// Dial a gRPC connection. The address to dial must be passed as parameter.
 	conn, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
 	if err != nil {
@@ -19,7 +22,7 @@ func main() {
 	defer conn.Close()
 
 	// Create a new Dgraph client.
-	dgraphClient := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+	dgraphClient = dgo.NewDgraphClient(api.NewDgraphClient(conn))
 
 	// Perform a query.
 	query := `
@@ -41,6 +44,13 @@ func main() {
 		nodeMap := node.(map[string]interface{})
 		fmt.Printf("UID: %s, Name: %s\n", nodeMap["uid"], nodeMap["name"])
 	}
+
+	// check for combos
+	comboFound := comboExists("Fire", "Water")
+	fmt.Printf("comboExists: %t\n", comboFound)
+	comboFound = comboExists("Fire", "Earth")
+	fmt.Printf("comboExists: %t\n", comboFound)
+
 }
 
 func queryDgraph(client *dgo.Dgraph, query string) (map[string]interface{}, error) {
@@ -65,4 +75,27 @@ func printResult(result map[string]interface{}) {
 		log.Fatal(err)
 	}
 	fmt.Println(string(jsonData))
+}
+
+func comboExists(a string, b string) bool {
+	// get nodes with a combination of input A and B
+	query := fmt.Sprintf(`
+		{
+			queryCombo(func: type(Combo)) @filter(((eq(A, "%s") AND eq(B, "%s")) OR (eq(A, "%s") AND eq(B, "%s")))) {
+				uid
+			}
+		}
+	`, a, b, b, a)
+
+	result, err := queryDgraph(dgraphClient, query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//printResult(result)
+
+	// if the number of combos is greater than one, return true
+	if len(result["queryCombo"].([]interface{})) > 0 {
+		return true
+	}
+	return false
 }
