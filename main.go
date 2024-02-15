@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 var referer = "https://neal.fun/infinite-craft/"
@@ -76,6 +77,8 @@ func main() {
 		log.Fatal(err)
 	}
 	printJSON(response)
+
+	// TODO: log get response data to separate db for metrics
 }
 
 func encodeInput(str string) string {
@@ -100,6 +103,7 @@ func sendGetRequest(url, referer string) (map[string]interface{}, error) {
 
 	// Send the request
 	client := http.Client{}
+	reqTime := time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT")
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -118,6 +122,8 @@ func sendGetRequest(url, referer string) (map[string]interface{}, error) {
 
 	// store status code in the result data before returning
 	result["statusCode"] = resp.StatusCode
+	result["reqTimestamp"] = reqTime
+	result["respTimestamp"] = resp.Header.Get("Date")
 	return result, nil
 }
 
