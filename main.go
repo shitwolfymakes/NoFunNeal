@@ -12,7 +12,7 @@ import (
 	"net/url"
 )
 
-var referer string = "https://neal.fun/infinite-craft/"
+var referer = "https://neal.fun/infinite-craft/"
 
 var dgraphClient *dgo.Dgraph
 
@@ -54,6 +54,12 @@ func main() {
 	fmt.Printf("comboExists: %t\n", comboFound)
 	comboFound = comboExists("Fire", "Earth")
 	fmt.Printf("comboExists: %t\n", comboFound)
+
+	// check for duplicate combo
+	comboFound = dupComboExists("Water", "Fire", "Steam")
+	fmt.Printf("dupComboExists: %t\n", comboFound)
+	comboFound = dupComboExists("Fire", "Water", "Steam")
+	fmt.Printf("dupComboExists: %t\n", comboFound)
 
 	// test url encoding
 	input := "Three's Company"
@@ -146,6 +152,29 @@ func comboExists(a string, b string) bool {
 			}
 		}
 	`, a, b, b, a)
+
+	result, err := queryDgraph(dgraphClient, query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//printJSON(result)
+
+	// if the number of combos is greater than one, return true
+	if len(result["queryCombo"].([]interface{})) > 0 {
+		return true
+	}
+	return false
+}
+
+func dupComboExists(a, b, comboResult string) bool {
+	// get nodes with a combination of input A and B
+	query := fmt.Sprintf(`
+		{
+			queryCombo(func: type(Combo)) @filter(((eq(A, "%s") AND eq(B, "%s")) AND eq(ComboResult, "%s"))) {
+				uid
+			}
+		}
+	`, a, b, comboResult)
 
 	result, err := queryDgraph(dgraphClient, query)
 	if err != nil {
