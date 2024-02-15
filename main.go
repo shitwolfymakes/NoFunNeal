@@ -116,6 +116,8 @@ func sendGetRequest(url, referer string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
+	// store status code in the result data before returning
+	result["statusCode"] = resp.StatusCode
 	return result, nil
 }
 
