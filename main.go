@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Print the results.
-	printResult(result)
+	printJSON(result)
 	for _, node := range result["all"].([]interface{}) {
 		nodeMap := node.(map[string]interface{})
 		fmt.Printf("UID: %s, Name: %s\n", nodeMap["uid"], nodeMap["name"])
@@ -69,7 +69,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	printResult(response)
+	printJSON(response)
 }
 
 func encodeInput(str string) string {
@@ -128,7 +128,7 @@ func queryDgraph(client *dgo.Dgraph, query string) (map[string]interface{}, erro
 	return result, nil
 }
 
-func printResult(result map[string]interface{}) {
+func printJSON(result map[string]interface{}) {
 	fmt.Println("Entire JSON block:")
 	jsonData, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
@@ -151,7 +151,7 @@ func comboExists(a string, b string) bool {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//printResult(result)
+	//printJSON(result)
 
 	// if the number of combos is greater than one, return true
 	if len(result["queryCombo"].([]interface{})) > 0 {
