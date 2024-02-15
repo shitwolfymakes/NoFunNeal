@@ -8,6 +8,7 @@ import (
 	"github.com/dgraph-io/dgo/v200/protos/api"
 	"google.golang.org/grpc"
 	"log"
+	"net/url"
 )
 
 var dgraphClient *dgo.Dgraph
@@ -37,9 +38,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	printResult(result)
 
-	// Print the results individually.
+	// Print the results.
+	printResult(result)
 	for _, node := range result["all"].([]interface{}) {
 		nodeMap := node.(map[string]interface{})
 		fmt.Printf("UID: %s, Name: %s\n", nodeMap["uid"], nodeMap["name"])
@@ -51,6 +52,26 @@ func main() {
 	comboFound = comboExists("Fire", "Earth")
 	fmt.Printf("comboExists: %t\n", comboFound)
 
+	// test url encoding
+	input := "Three's Company"
+	fmt.Printf("name: %s\n", input)
+	fmt.Printf("encodedName: %s\n", encodeInput(input))
+
+	// test url construction
+	encodedUrl := craftUrl(input, "Testing")
+	fmt.Println(encodedUrl)
+}
+
+func encodeInput(str string) string {
+	return url.QueryEscape(str)
+}
+
+func craftUrl(a string, b string) string {
+	out := fmt.Sprintf(`https://neal.fun/api/infinite-craft/pair?first=%s&second=%s`,
+		encodeInput(a),
+		encodeInput(b),
+	)
+	return out
 }
 
 func queryDgraph(client *dgo.Dgraph, query string) (map[string]interface{}, error) {
