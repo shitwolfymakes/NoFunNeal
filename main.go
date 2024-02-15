@@ -8,8 +8,11 @@ import (
 	"github.com/dgraph-io/dgo/v200/protos/api"
 	"google.golang.org/grpc"
 	"log"
+	"net/http"
 	"net/url"
 )
+
+var referer string = "https://neal.fun/infinite-craft/"
 
 var dgraphClient *dgo.Dgraph
 
@@ -60,6 +63,13 @@ func main() {
 	// test url construction
 	encodedUrl := craftUrl(input, "Testing")
 	fmt.Println(encodedUrl)
+
+	// test sending a get request
+	response, err := sendGetRequest(encodedUrl, referer)
+	if err != nil {
+		log.Fatal(err)
+	}
+	printResult(response)
 }
 
 func encodeInput(str string) string {
@@ -72,6 +82,35 @@ func craftUrl(a string, b string) string {
 		encodeInput(b),
 	)
 	return out
+}
+
+func sendGetRequest(url, referer string) (map[string]interface{}, error) {
+	// Create a new request with a referer
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Referer", referer)
+
+	// Send the request
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Print the HTTP status code
+	fmt.Println("HTTP Status Code:", resp.StatusCode)
+
+	// Decode JSON response
+	var result map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func queryDgraph(client *dgo.Dgraph, query string) (map[string]interface{}, error) {
