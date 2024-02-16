@@ -19,7 +19,7 @@ services:
   alpha:
     image: dgraph/dgraph:latest
     volumes:
-      - /opt/NoFunNeal/dgraph:/dgraph
+      - dgraph_data:/dgraph
     ports:
       - 8080:8080
       - 9080:9080
