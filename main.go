@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/dgraph-io/dgo/v200"
@@ -10,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"time"
 )
@@ -73,7 +75,7 @@ func main() {
 	fmt.Printf("dupComboExists: %t\n", comboFound)
 
 	// test url encoding
-	input := "Three's Company"
+	input := "Water"
 	fmt.Printf("name: %s\n", input)
 	fmt.Printf("encodedName: %s\n", encodeInput(input))
 
@@ -82,6 +84,7 @@ func main() {
 	fmt.Println(encodedUrl)
 
 	// test sending a get request
+	fmt.Printf("--- test sending a get request\n")
 	response, err := sendGetRequest(encodedUrl, referer)
 	if err != nil {
 		log.Fatal(err)
@@ -105,14 +108,49 @@ func craftUrl(a string, b string) string {
 
 func sendGetRequest(url, referer string) (map[string]interface{}, error) {
 	// Create a new request with a referer
+	fmt.Printf("--- create request\n")
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
+
+	//req.Host = "neal.fun"
+	//req.Header.Set("Accept", "*/*")
+	//req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	//req.Header.Set("Accept-Language", "en-US,en;q=0.5")
+	//req.Header.Set("Alt-Used", "neal.fun")
+	//req.Header.Set("Connection", "keep-alive")
+	//req.Header.Set("DNT", "1")
+	//req.Header.Set("Host", "neal.fun")
 	req.Header.Set("Referer", referer)
+	//req.Header.Set("Sec-Fetch-Dest", "empty")
+	//req.Header.Set("Sec-Fetch-Mode", "cors")
+	//req.Header.Set("Sec-Fetch-Sire", "same-origin")
+	//req.Header.Set("Sec-GPC", "1")
+	//req.Header.Set("TE", "trailers")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0")
+
+	// Print the request content
+	dump, err := httputil.DumpRequestOut(req, true)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("Request content:")
+	fmt.Println(string(dump))
 
 	// Send the request
-	client := http.Client{}
+	fmt.Printf("--- send request\n")
+	//client := http.Client{}
+	// Create a custom transport with the specified HTTP version
+	transport := &http.Transport{
+		// Specify the desired HTTP version here
+		// For example, to use HTTP/2.0:
+		// TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
+		TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
+	}
+	client := &http.Client{
+		Transport: transport,
+	}
 	reqTime := time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT")
 	resp, err := client.Do(req)
 	if err != nil {
@@ -121,9 +159,12 @@ func sendGetRequest(url, referer string) (map[string]interface{}, error) {
 	defer resp.Body.Close()
 
 	// Print the HTTP status code
+	fmt.Printf("--- return code\n")
 	fmt.Println("HTTP Status Code:", resp.StatusCode)
+	fmt.Println(resp)
 
 	// Decode JSON response
+	fmt.Printf("--- decode json\n")
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
