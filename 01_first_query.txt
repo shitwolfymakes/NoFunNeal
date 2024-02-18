@@ -90,3 +90,14 @@
     }
   }
 }
+
+### QUERYING ALL RESULT NODES
+{
+  nodes(func: has(dgraph.type)) @filter(eq(dgraph.type, "Result")) {
+    uid
+    name
+    encodedName
+    emoji
+    isNew
+  }
+}
