@@ -8,10 +8,11 @@ import (
 	"github.com/dgraph-io/dgo/v200"
 	"github.com/dgraph-io/dgo/v200/protos/api"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"time"
 )
@@ -22,11 +23,47 @@ var dgraphClient *dgo.Dgraph
 
 var agentId string
 
+var (
+	client     *mongo.Client
+	collection *mongo.Collection
+)
+
 func init() {
 	// Generate a new UUID
 	id := uuid.New()
 	agentId = id.String()
 	fmt.Println(agentId)
+
+	preflightMongoDb()
+}
+
+func preflightMongoDb() {
+	// MongoDB connection string
+	connectionString := "mongodb://localhost:27017"
+
+	// Connect to MongoDB
+	var err error
+	client, err = mongo.Connect(context.Background(), options.Client().ApplyURI(connectionString))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check the connection
+	err = client.Ping(context.Background(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get a handle for your collection
+	collection = client.Database("your-database").Collection("your-collection")
+}
+
+type MetricData struct {
+	Result        string
+	EncodedURL    string
+	HttpCode      int
+	ReqTimestamp  string
+	RespTimestamp string
 }
 
 func main() {
@@ -84,14 +121,15 @@ func main() {
 	fmt.Println(encodedUrl)
 
 	// test sending a get request
-	fmt.Printf("--- test sending a get request\n")
-	response, err := sendGetRequest(encodedUrl, referer)
+	response, metricData, err := sendGetRequest(encodedUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 	printJSON(response)
+	println(metricData)
 
 	// TODO: log get response data to separate db for metrics
+
 }
 
 func encodeInput(str string) string {
@@ -106,46 +144,18 @@ func craftUrl(a string, b string) string {
 	return out
 }
 
-func sendGetRequest(url, referer string) (map[string]interface{}, error) {
-	// Create a new request with a referer
-	fmt.Printf("--- create request\n")
+func sendGetRequest(url string) (map[string]interface{}, MetricData, error) {
+	// Create a new request with proper headers
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, MetricData{}, err
 	}
-
-	//req.Host = "neal.fun"
-	//req.Header.Set("Accept", "*/*")
-	//req.Header.Set("Accept-Encoding", "gzip, deflate, br")
-	//req.Header.Set("Accept-Language", "en-US,en;q=0.5")
-	//req.Header.Set("Alt-Used", "neal.fun")
-	//req.Header.Set("Connection", "keep-alive")
-	//req.Header.Set("DNT", "1")
-	//req.Header.Set("Host", "neal.fun")
 	req.Header.Set("Referer", referer)
-	//req.Header.Set("Sec-Fetch-Dest", "empty")
-	//req.Header.Set("Sec-Fetch-Mode", "cors")
-	//req.Header.Set("Sec-Fetch-Sire", "same-origin")
-	//req.Header.Set("Sec-GPC", "1")
-	//req.Header.Set("TE", "trailers")
 	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0")
 
-	// Print the request content
-	dump, err := httputil.DumpRequestOut(req, true)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("Request content:")
-	fmt.Println(string(dump))
-
 	// Send the request
-	fmt.Printf("--- send request\n")
-	//client := http.Client{}
-	// Create a custom transport with the specified HTTP version
 	transport := &http.Transport{
-		// Specify the desired HTTP version here
-		// For example, to use HTTP/2.0:
-		// TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
+		// API doesn't accept HTTP/1.1, so use HTTP/2.0:
 		TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
 	}
 	client := &http.Client{
@@ -154,28 +164,28 @@ func sendGetRequest(url, referer string) (map[string]interface{}, error) {
 	reqTime := time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, MetricData{}, err
 	}
 	defer resp.Body.Close()
 
 	// Print the HTTP status code
-	fmt.Printf("--- return code\n")
 	fmt.Println("HTTP Status Code:", resp.StatusCode)
-	fmt.Println(resp)
 
 	// Decode JSON response
-	fmt.Printf("--- decode json\n")
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		return nil, err
+		return nil, MetricData{}, err
 	}
 
-	// store status code in the result data before returning
-	result["statusCode"] = resp.StatusCode
-	result["reqTimestamp"] = reqTime
-	result["respTimestamp"] = resp.Header.Get("Date")
-	return result, nil
+	metricData := MetricData{
+		Result:        result["result"].(string),
+		EncodedURL:    url,
+		HttpCode:      resp.StatusCode,
+		ReqTimestamp:  reqTime,
+		RespTimestamp: resp.Header.Get("Date"),
+	}
+	return result, metricData, nil
 }
 
 func queryDgraph(client *dgo.Dgraph, query string) (map[string]interface{}, error) {
