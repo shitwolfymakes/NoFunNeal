@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/dgraph-io/dgo/v200"
@@ -25,10 +24,16 @@ var (
 	dgraphClient *dgo.Dgraph
 
 	// mongoDB shit
-	mongoURI    = "mongodb://localhost:27017"
-	mongoDbName = "infinite-craft-metrics"
-	client      *mongo.Client
-	collection  *mongo.Collection
+	mongodb_root_username_secret             = "mongodb_root_username"
+	mongodb_root_password_secret             = "mongodb_root_password"
+	mongo_express_admin_username_secret      = "mongo_express_admin_username"
+	mongo_express_admin_password_secret      = "mongo_express_admin_password"
+	mongo_express_basic_auth_username_secret = "mongo_express_basic_auth_username"
+	mongo_express_basic_auth_password_secret = "mongo_express_basic_auth_password"
+	mongoURI                                 = "mongodb://localhost:27017"
+	mongoDbName                              = "infinite-craft-metrics"
+	client                                   *mongo.Client
+	collection                               *mongo.Collection
 
 	// agent-wide shit
 	agentId string
@@ -39,7 +44,7 @@ func init() {
 	// Generate a new UUID
 	id := uuid.New()
 	agentId = id.String()
-	fmt.Println(agentId)
+	fmt.Println("Agent UUID: " + agentId)
 
 	preflightDgraph()
 	preflightMongoDb(agentId)
@@ -74,25 +79,17 @@ func preflightMongoDb(agentId string) {
 	collection = client.Database(mongoDbName).Collection(agentId)
 }
 
-func getSecret(secretName string) (string, error) {
+func getSecret(secretName string) string {
 	// Get the path to the secrets directory
 	secretsDir := "/run/secrets/"
 
 	// Read the secret file
-	secretFilePath := secretsDir + secretName
+	secretFilePath := secretsDir + secretName + ".txt"
 	secretBytes, err := os.ReadFile(secretFilePath)
 	if err != nil {
-		return "", err
+		panic(err)
 	}
-
-	// Decode the secret value
-	secretValue := string(secretBytes)
-	decodedValue, err := base64.StdEncoding.DecodeString(secretValue)
-	if err != nil {
-		return "", err
-	}
-
-	return string(decodedValue), nil
+	return string(secretBytes)
 }
 
 type MetricData struct {

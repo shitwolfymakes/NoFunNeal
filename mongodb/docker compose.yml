@@ -15,6 +15,8 @@ services:
     secrets:
       - mongodb_root_username
       - mongodb_root_password
+    networks:
+      - no-fun-neal
 
   mongo-express:
     image: mongo-express
@@ -35,6 +37,12 @@ services:
       - mongo_express_admin_password
       - mongo_express_basic_auth_username
       - mongo_express_basic_auth_password
+    networks:
+      - no-fun-neal
+
+networks:
+  no-fun-neal:
+    external: true
 
 secrets:
   mongodb_root_username:
