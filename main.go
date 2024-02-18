@@ -19,11 +19,14 @@ import (
 
 var (
 	// dgraph shit
+	dgraphURI    = "localhost:9080"
 	dgraphClient *dgo.Dgraph
 
 	// mongoDB shit
-	client     *mongo.Client
-	collection *mongo.Collection
+	mongoURI    = "mongodb://localhost:27017"
+	mongoDbName = "infinite-craft-metrics"
+	client      *mongo.Client
+	collection  *mongo.Collection
 
 	// agent-wide shit
 	agentId string
@@ -36,16 +39,25 @@ func init() {
 	agentId = id.String()
 	fmt.Println(agentId)
 
-	preflightMongoDb()
+	preflightDgraph()
+	preflightMongoDb(agentId)
 }
 
-func preflightMongoDb() {
-	// MongoDB connection string
-	connectionString := "mongodb://localhost:27017"
+func preflightDgraph() {
+	// Dial a gRPC connection. The address to dial must be passed as parameter.
+	conn, err := grpc.Dial(dgraphURI, grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	// Create a new Dgraph client.
+	dgraphClient = dgo.NewDgraphClient(api.NewDgraphClient(conn))
+}
+
+func preflightMongoDb(agentId string) {
 	// Connect to MongoDB
 	var err error
-	client, err = mongo.Connect(context.Background(), options.Client().ApplyURI(connectionString))
+	client, err = mongo.Connect(context.Background(), options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +69,7 @@ func preflightMongoDb() {
 	}
 
 	// Get a handle for your collection
-	collection = client.Database("your-database").Collection("your-collection")
+	collection = client.Database(mongoDbName).Collection(agentId)
 }
 
 type MetricData struct {
@@ -71,7 +83,7 @@ type MetricData struct {
 
 func main() {
 	// Dial a gRPC connection. The address to dial must be passed as parameter.
-	conn, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
+	conn, err := grpc.Dial(dgraphURI, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
