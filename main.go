@@ -17,15 +17,17 @@ import (
 	"time"
 )
 
-var referer = "https://neal.fun/infinite-craft/"
-
-var dgraphClient *dgo.Dgraph
-
-var agentId string
-
 var (
+	// dgraph shit
+	dgraphClient *dgo.Dgraph
+
+	// mongoDB shit
 	client     *mongo.Client
 	collection *mongo.Collection
+
+	// agent-wide shit
+	agentId string
+	referer = "https://neal.fun/infinite-craft/"
 )
 
 func init() {
@@ -129,7 +131,7 @@ func main() {
 	println(metricData.UUID)
 
 	// TODO: log get response data to separate db for metrics
-
+	sendMetrics(metricData)
 }
 
 func encodeInput(str string) string {
@@ -187,6 +189,13 @@ func sendGetRequest(url string) (map[string]interface{}, MetricData, error) {
 		RespTimestamp: resp.Header.Get("Date"),
 	}
 	return result, metricData, nil
+}
+
+func sendMetrics(metricData MetricData) {
+	_, err := collection.InsertOne(context.Background(), metricData)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func queryDgraph(client *dgo.Dgraph, query string) (map[string]interface{}, error) {
