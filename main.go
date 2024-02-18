@@ -82,16 +82,6 @@ type MetricData struct {
 }
 
 func main() {
-	// Dial a gRPC connection. The address to dial must be passed as parameter.
-	conn, err := grpc.Dial(dgraphURI, grpc.WithInsecure())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-
-	// Create a new Dgraph client.
-	dgraphClient = dgo.NewDgraphClient(api.NewDgraphClient(conn))
-
 	// Perform a query.
 	query := `
 		{
