@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/dgraph-io/dgo/v200"
@@ -14,6 +15,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 )
 
@@ -70,6 +72,27 @@ func preflightMongoDb(agentId string) {
 
 	// Get a handle for your collection
 	collection = client.Database(mongoDbName).Collection(agentId)
+}
+
+func getSecret(secretName string) (string, error) {
+	// Get the path to the secrets directory
+	secretsDir := "/run/secrets/"
+
+	// Read the secret file
+	secretFilePath := secretsDir + secretName
+	secretBytes, err := os.ReadFile(secretFilePath)
+	if err != nil {
+		return "", err
+	}
+
+	// Decode the secret value
+	secretValue := string(secretBytes)
+	decodedValue, err := base64.StdEncoding.DecodeString(secretValue)
+	if err != nil {
+		return "", err
+	}
+
+	return string(decodedValue), nil
 }
 
 type MetricData struct {
