@@ -59,15 +59,15 @@ func preflightMongoDb() {
 }
 
 type MetricData struct {
+	UUID          string
 	Result        string
 	EncodedURL    string
-	HttpCode      int
+	HTTPCode      int
 	ReqTimestamp  string
 	RespTimestamp string
 }
 
 func main() {
-
 	// Dial a gRPC connection. The address to dial must be passed as parameter.
 	conn, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
 	if err != nil {
@@ -126,7 +126,7 @@ func main() {
 		log.Fatal(err)
 	}
 	printJSON(response)
-	println(metricData)
+	println(metricData.UUID)
 
 	// TODO: log get response data to separate db for metrics
 
@@ -179,9 +179,10 @@ func sendGetRequest(url string) (map[string]interface{}, MetricData, error) {
 	}
 
 	metricData := MetricData{
+		UUID:          agentId,
 		Result:        result["result"].(string),
 		EncodedURL:    url,
-		HttpCode:      resp.StatusCode,
+		HTTPCode:      resp.StatusCode,
 		ReqTimestamp:  reqTime,
 		RespTimestamp: resp.Header.Get("Date"),
 	}
