@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dgraph-io/dgo/v200"
 	"github.com/dgraph-io/dgo/v200/protos/api"
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
@@ -16,6 +17,15 @@ import (
 var referer = "https://neal.fun/infinite-craft/"
 
 var dgraphClient *dgo.Dgraph
+
+var agentId string
+
+func init() {
+	// Generate a new UUID
+	id := uuid.New()
+	agentId = id.String()
+	fmt.Println(agentId)
+}
 
 func main() {
 

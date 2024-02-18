@@ -4,6 +4,7 @@ go 1.22.0
 
 require (
 	github.com/dgraph-io/dgo/v200 v200.0.0-20210401091508-95bfd74de60e
+	github.com/google/uuid v1.4.0
 	google.golang.org/grpc v1.61.1
 )
 
