@@ -46,6 +46,7 @@ services:
       - mongodb_root_password
     networks:
       - no-fun-neal
+
   mongo-express:
     image: mongo-express
     restart: always
