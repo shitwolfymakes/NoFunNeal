@@ -5,7 +5,7 @@ In Schema -> Bulk Edit -> replace with the following and press "Apply Schema"
 <A>: string @index(fulltext, term) .
 <B>: string @index(fulltext, term) .
 <ComboResult>: string @index(fulltext, term) .
-<name>: string @index(fulltext, term) .
+<result>: string @index(fulltext, term) .
 <encodedName>: string @index(fulltext, term) .
 <emoji>: string .
 <isNew>: bool .
@@ -15,7 +15,7 @@ type <Combo> {
 	ComboResult
 }
 type <Result> {
-	name
+	result
 	encodedName
 	emoji
 	isNew
@@ -28,31 +28,31 @@ In Console -> Mutate -> Paste the following and press "Run"
 {
   set {
     _:water <dgraph.type> "Result" .
-    _:water <name> "Water" .
+    _:water <result> "Water" .
     _:water <encodedName> "Water" .
     _:water <emoji> "💧" .
     _:water <isNew> "false" .
 
     _:fire <dgraph.type> "Result" .
-    _:fire <name> "Fire" .
+    _:fire <result> "Fire" .
     _:fire <encodedName> "Fire" .
     _:fire <emoji> "🔥" .
     _:fire <isNew> "false" .
 
   	_:wind <dgraph.type> "Result" .
-    _:wind <name> "Wind" .
+    _:wind <result> "Wind" .
     _:wind <encodedName> "Wind" .
     _:wind <emoji> "🌬️" .
     _:wind <isNew> "false" .
 
   	_:earth <dgraph.type> "Result" .
-    _:earth <name> "Earth" .
+    _:earth <result> "Earth" .
     _:earth <encodedName> "Earth" .
     _:earth <emoji> "🌍" .
     _:earth <isNew> "false" .
 
   	_:steam <dgraph.type> "Result" .
-    _:steam <name> "Steam" .
+    _:steam <result> "Steam" .
     _:steam <encodedName> "Steam" .
     _:steam <emoji> "💨" .
     _:steam <isNew> "false" .
@@ -71,7 +71,7 @@ In Console -> Query -> Paste the following and press "Run"
 {
     nodes(func: has(dgraph.type)) {
         uid
-        name
+        result
         encodedName
         emoji
         isNew

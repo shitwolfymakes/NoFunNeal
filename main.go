@@ -98,9 +98,9 @@ func preflightDgraph() {
 	// Perform a test query.
 	query := `
 		{
-			all(func: has(name)) {
+			all(func: has(result)) {
 				uid
-				name
+				result
 			}
 		}
 	`
@@ -178,11 +178,11 @@ func preflightTests() {
 
 	// test url encoding
 	input := "Water"
-	fmt.Printf("name: %s\n", input)
+	fmt.Printf("result: %s\n", input)
 	fmt.Printf("encodedName: %s\n", encodeInput(input))
 
 	// test url construction
-	encodedUrl := craftUrl(input, "Testing")
+	encodedUrl := craftUrl(input, "Fire")
 	fmt.Println(encodedUrl)
 
 	// test sending a get request
@@ -196,7 +196,17 @@ func preflightTests() {
 	// Test sending metrics to MongoDB
 	sendMetrics(metricData)
 
-	// TODO: test storing a result from a response
+	// Steam is already in the DB, so let's test these functions with that
+	// insert when already in there, fail gracefully
+	insertResult(response)
+	// remove when already in there
+	removeResult(response["result"].(string))
+	// remove when not in there, fail gracefully
+	removeResult(response["result"].(string))
+	// insert when not in there
+	insertResult(response)
+	// TODO: test removing a combo from a response
+	// TODO: test storing a combo from a response
 }
 
 func encodeInput(str string) string {
@@ -263,6 +273,86 @@ func sendMetrics(metricData MetricData) {
 	}
 }
 
+func removeResult(name string) {
+	// get uid of result by name
+	response := getResultNode(name)
+	results := response["queryResult"].([]interface{})
+	if len(results) == 0 {
+		fmt.Printf("Result \"%s\" not found in database.\n", name)
+		return
+	}
+
+	// extract uid
+	uid := results[0].(map[string]interface{})["uid"].(string)
+	// remove node by uid
+	deleteNode(uid)
+	fmt.Printf("Result \"%s\" removed successfully.\n", name)
+
+}
+
+func deleteNode(uid string) {
+	ctx := context.Background()
+
+	// Create a new transaction
+	txn := dgraphClient.NewTxn()
+	defer txn.Discard(ctx)
+
+	// Create a new mutation
+	mu := &api.Mutation{
+		CommitNow:  true,
+		DeleteJson: []byte(`{"uid":"` + uid + `"}`),
+	}
+
+	// Execute the mutation
+	_, err := txn.Mutate(ctx, mu)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func insertResult(result map[string]interface{}) {
+	name := result["result"].(string)
+
+	// check if result already exists
+	if resultExists(name) {
+		fmt.Printf("Result \"%s\" already exists.\n", name)
+		return
+	}
+
+	// Define the data to be inserted
+	data := result
+	data["encodedName"] = encodeInput(result["result"].(string))
+	data["dgraph.type"] = "Result"
+	insertNode(data)
+	fmt.Printf("Result \"%s\" inserted successfully.\n", name)
+}
+
+func insertNode(data map[string]interface{}) {
+	ctx := context.Background()
+
+	// Create a new transaction
+	txn := dgraphClient.NewTxn()
+	defer txn.Discard(ctx)
+
+	// Create a new mutation
+	mu := &api.Mutation{
+		CommitNow: true,
+	}
+
+	// Add a setJson operation to the mutation
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	mu.SetJson = jsonData
+
+	// Execute the mutation
+	_, err = txn.Mutate(ctx, mu)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func queryDgraph(client *dgo.Dgraph, query string) (map[string]interface{}, error) {
 	ctx := context.Background()
 	resp, err := client.NewReadOnlyTxn().Query(ctx, query)
@@ -288,10 +378,20 @@ func printJSON(result map[string]interface{}) {
 }
 
 func resultExists(name string) bool {
+	response := getResultNode(name)
+
+	// if the number of combos is greater than one, return true
+	if len(response["queryResult"].([]interface{})) > 0 {
+		return true
+	}
+	return false
+}
+
+func getResultNode(name string) map[string]interface{} {
 	// construct query string
 	query := fmt.Sprintf(`
 		{
-			queryResult(func: type(Result)) @filter(((eq(name, "%s")))) {
+			queryResult(func: type(Result)) @filter(((eq(result, "%s")))) {
 				uid
 			}
 		}
@@ -301,12 +401,7 @@ func resultExists(name string) bool {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// if the number of combos is greater than one, return true
-	if len(response["queryResult"].([]interface{})) > 0 {
-		return true
-	}
-	return false
+	return response
 }
 
 func comboExists(a string, b string) bool {
