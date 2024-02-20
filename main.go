@@ -25,7 +25,7 @@ var (
 	dgraphClient *dgo.Dgraph
 
 	// mongoDB shit
-	secret_files = map[string]string{
+	secretFiles = map[string]string{
 		"MONGODB_ROOT_USERNAME":                    "mongodb_root_username.txt",
 		"MONGODB_ROOT_PASSWORD_SECRET":             "mongodb_root_password.txt",
 		"MONGO_EXPRESS_ADMIN_USERNAME_SECRET":      "mongo_express_admin_username.txt",
@@ -122,7 +122,7 @@ func preflightSecrets(dirPath string) {
 	}
 
 	// Make sure all the secrets exist.
-	for _, value := range secret_files {
+	for _, value := range secretFiles {
 		// Construct the file path by appending the directory path and the filename
 		filePath := filepath.Join(absDirPath, value)
 		_, err = os.Stat(filePath)
@@ -138,7 +138,7 @@ func getSecret(secretName string) string {
 	secretsDir := "./secrets/"
 
 	// Read the secret file
-	secretFilePath := secretsDir + secret_files[secretName]
+	secretFilePath := secretsDir + secretFiles[secretName]
 	secretBytes, err := os.ReadFile(secretFilePath)
 	if err != nil {
 		panic(err)
