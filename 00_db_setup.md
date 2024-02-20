@@ -1,4 +1,7 @@
 ### EDIT SCHEMA
+In Schema -> Bulk Edit -> replace with the following and press "Apply Schema"
+
+```
 <A>: string @index(fulltext, term) .
 <B>: string @index(fulltext, term) .
 <ComboResult>: string @index(fulltext, term) .
@@ -17,8 +20,11 @@ type <Result> {
 	emoji
 	isNew
 }
+```
 
 ### Load data
+In Console -> Mutate -> Paste the following and press "Run"
+```
 {
   set {
     _:water <dgraph.type> "Result" .
@@ -57,42 +63,4 @@ type <Result> {
     _:combo_steam <ComboResult> "Steam" .
   }
 }
-
-### RESPONSE
-{
-  "data": {
-    "code": "Success",
-    "message": "Done",
-    "queries": null,
-    "uids": {
-      "combo_steam": "0x27e3",
-      "earth": "0x27e1",
-      "fire": "0x27df",
-      "steam": "0x27e2",
-      "water": "0x27de",
-      "wind": "0x27e0"
-    }
-  },
-  "extensions": {
-    "server_latency": {
-      "parsing_ns": 21050,
-      "processing_ns": 1171035,
-      "assign_timestamp_ns": 312152,
-      "total_ns": 1618708
-    },
-    "txn": {
-      "start_ts": 33464,
-      "commit_ts": 33465,
-      "preds": [
-        "1-0-A",
-        "1-0-B",
-        "1-0-ComboResult",
-        "1-0-dgraph.type",
-        "1-0-emoji",
-        "1-0-encodedName",
-        "1-0-isNew",
-        "1-0-name"
-      ]
-    }
-  }
-}
+```
