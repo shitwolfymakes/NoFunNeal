@@ -59,6 +59,28 @@ func preflightDgraph() {
 
 	// Create a new Dgraph client.
 	dgraphClient = dgo.NewDgraphClient(api.NewDgraphClient(conn))
+
+	// Perform a test query.
+	query := `
+		{
+			all(func: has(name)) {
+				uid
+				name
+			}
+		}
+	`
+
+	result, err := queryDgraph(dgraphClient, query)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Print the results.
+	printJSON(result)
+	for _, node := range result["all"].([]interface{}) {
+		nodeMap := node.(map[string]interface{})
+		fmt.Printf("UID: %s, Name: %s\n", nodeMap["uid"], nodeMap["name"])
+	}
 }
 
 func preflightMongoDb(agentId string) {
@@ -81,7 +103,7 @@ func preflightMongoDb(agentId string) {
 
 func getSecret(secretName string) string {
 	// Get the path to the secrets directory
-	secretsDir := "/run/secrets/"
+	secretsDir := "./secrets/"
 
 	// Read the secret file
 	secretFilePath := secretsDir + secretName + ".txt"
@@ -102,27 +124,6 @@ type MetricData struct {
 }
 
 func main() {
-	// Perform a query.
-	query := `
-		{
-			all(func: has(name)) {
-				uid
-				name
-			}
-		}
-	`
-	result, err := queryDgraph(dgraphClient, query)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Print the results.
-	printJSON(result)
-	for _, node := range result["all"].([]interface{}) {
-		nodeMap := node.(map[string]interface{})
-		fmt.Printf("UID: %s, Name: %s\n", nodeMap["uid"], nodeMap["name"])
-	}
-
 	// check for combos
 	comboFound := comboExists("Fire", "Water")
 	fmt.Printf("comboExists: %t\n", comboFound)
