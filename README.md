@@ -10,3 +10,14 @@ Rate limit script only reaches a 100 requests in roughly 30 secs, so DDoS isn't 
 - What big-O time is the problem space?
 - algos for exhaustive search of M-to-M combinations
 - publishing the data
+
+### Stuff I learned
+- Golang!
+- Graph database basics, DGraph, GraphQL
+- Document database basics, MongoDB
+- API analysis and communication
+- Improved prompting skills for/pair programming with ChatGPT, even 3.5 is pretty great if you know what you're asking for
+
+### Headaches encountered
+- DGraph doesn't appear to have a wait to spin up using a custom schema (wtf?)
+- Containerizing the agent itself was a 5-hour rabbithole of intractible networking issues. Skipped for time
