@@ -26,7 +26,7 @@ var (
 
 	// mongoDB shit
 	secretFiles = map[string]string{
-		"MONGODB_ROOT_USERNAME":                    "mongodb_root_username.txt",
+		"MONGODB_ROOT_USERNAME_SECRET":             "mongodb_root_username.txt",
 		"MONGODB_ROOT_PASSWORD_SECRET":             "mongodb_root_password.txt",
 		"MONGO_EXPRESS_ADMIN_USERNAME_SECRET":      "mongo_express_admin_username.txt",
 		"MONGO_EXPRESS_ADMIN_PASSWORD_SECRET":      "mongo_express_admin_password.txt",
@@ -39,8 +39,9 @@ var (
 	collection  *mongo.Collection
 
 	// agent-wide shit
-	agentId string
-	referer = "https://neal.fun/infinite-craft/"
+	agentId    string
+	secretsDir string
+	referer    = "https://neal.fun/infinite-craft/"
 )
 
 func init() {
@@ -55,9 +56,37 @@ func init() {
 	agentId = id.String()
 	fmt.Println("Agent UUID: " + agentId)
 
+	preflightSecrets(os.Args[1])
 	preflightDgraph()
 	preflightMongoDb(agentId)
-	preflightSecrets(os.Args[1])
+}
+
+func preflightSecrets(dirPath string) {
+	// Get the absolute path of the directory.
+	absDirPath, err := filepath.Abs(dirPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check that the directory exists.
+	_, err = os.Stat(absDirPath)
+	if os.IsNotExist(err) {
+		log.Fatal(err)
+	}
+
+	// Set the global
+	secretsDir = absDirPath
+
+	// Make sure all the secrets exist.
+	for _, value := range secretFiles {
+		// Construct the file path by appending the directory path and the filename
+		filePath := filepath.Join(absDirPath, value)
+		_, err = os.Stat(filePath)
+		if os.IsNotExist(err) {
+			log.Fatal(err)
+		}
+	}
+	fmt.Println("PREFLIGHT -- SECRETS: All secret files are found.")
 }
 
 func preflightDgraph() {
@@ -90,9 +119,16 @@ func preflightDgraph() {
 }
 
 func preflightMongoDb(agentId string) {
+	// Set client options for authentication
+	clientOptions := options.Client().ApplyURI(mongoURI)
+	clientOptions.Auth = &options.Credential{
+		Username: getSecret("MONGODB_ROOT_USERNAME_SECRET"),
+		Password: getSecret("MONGODB_ROOT_PASSWORD_SECRET"),
+	}
+
 	// Connect to MongoDB
 	var err error
-	client, err = mongo.Connect(context.Background(), options.Client().ApplyURI(mongoURI))
+	client, err = mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -108,37 +144,9 @@ func preflightMongoDb(agentId string) {
 	fmt.Println("PREFLIGHT -- MONGODB: MongoDB db accessible as expected.")
 }
 
-func preflightSecrets(dirPath string) {
-	// Get the absolute path of the directory.
-	absDirPath, err := filepath.Abs(dirPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Check that the directory exists.
-	_, err = os.Stat(absDirPath)
-	if os.IsNotExist(err) {
-		log.Fatal(err)
-	}
-
-	// Make sure all the secrets exist.
-	for _, value := range secretFiles {
-		// Construct the file path by appending the directory path and the filename
-		filePath := filepath.Join(absDirPath, value)
-		_, err = os.Stat(filePath)
-		if os.IsNotExist(err) {
-			log.Fatal(err)
-		}
-	}
-	fmt.Println("PREFLIGHT -- SECRETS: All secret files are found.")
-}
-
 func getSecret(secretName string) string {
-	// Get the path to the secrets directory
-	secretsDir := "./secrets/"
-
 	// Read the secret file
-	secretFilePath := secretsDir + secretFiles[secretName]
+	secretFilePath := filepath.Join(secretsDir, secretFiles[secretName])
 	secretBytes, err := os.ReadFile(secretFilePath)
 	if err != nil {
 		panic(err)
