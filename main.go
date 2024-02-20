@@ -285,6 +285,28 @@ func printJSON(result map[string]interface{}) {
 	fmt.Println(string(jsonData))
 }
 
+func resultExists(name string) bool {
+	// construct query string
+	query := fmt.Sprintf(`
+		{
+			queryResult(func: type(Result)) @filter(((eq(name, "%s")))) {
+				uid
+			}
+		}
+	`, name)
+
+	response, err := queryDgraph(dgraphClient, query)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// if the number of combos is greater than one, return true
+	if len(response["queryResult"].([]interface{})) > 0 {
+		return true
+	}
+	return false
+}
+
 func comboExists(a string, b string) bool {
 	// get nodes with a combination of input A and B
 	query := fmt.Sprintf(`

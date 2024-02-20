@@ -17,6 +17,7 @@ Rate limit script only reaches a 100 requests in roughly 30 secs, so DDoS isn't 
 - Document database basics, MongoDB
 - API analysis and communication
 - Improved prompting skills for/pair programming with ChatGPT, even 3.5 is pretty great if you know what you're asking for
+- Secrets management and handling creds programmatically (Biggest weakness is hardcoding filenames)
 
 ### Headaches encountered
 - DGraph doesn't appear to have a wait to spin up using a custom schema (wtf?)
