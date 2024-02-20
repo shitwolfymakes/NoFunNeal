@@ -64,3 +64,17 @@ In Console -> Mutate -> Paste the following and press "Run"
   }
 }
 ```
+
+### QUERY TO CONFIRM DATA WAS LOADED
+In Console -> Query -> Paste the following and press "Run"
+```
+{
+    nodes(func: has(dgraph.type)) {
+        uid
+        name
+        encodedName
+        emoji
+        isNew
+    }
+}
+```
