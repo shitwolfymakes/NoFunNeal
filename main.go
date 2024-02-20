@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -24,16 +25,18 @@ var (
 	dgraphClient *dgo.Dgraph
 
 	// mongoDB shit
-	mongodb_root_username_secret             = "mongodb_root_username"
-	mongodb_root_password_secret             = "mongodb_root_password"
-	mongo_express_admin_username_secret      = "mongo_express_admin_username"
-	mongo_express_admin_password_secret      = "mongo_express_admin_password"
-	mongo_express_basic_auth_username_secret = "mongo_express_basic_auth_username"
-	mongo_express_basic_auth_password_secret = "mongo_express_basic_auth_password"
-	mongoURI                                 = "mongodb://localhost:27017"
-	mongoDbName                              = "infinite-craft-metrics"
-	client                                   *mongo.Client
-	collection                               *mongo.Collection
+	secret_files = map[string]string{
+		"MONGODB_ROOT_USERNAME":                    "mongodb_root_username.txt",
+		"MONGODB_ROOT_PASSWORD_SECRET":             "mongodb_root_password.txt",
+		"MONGO_EXPRESS_ADMIN_USERNAME_SECRET":      "mongo_express_admin_username.txt",
+		"MONGO_EXPRESS_ADMIN_PASSWORD_SECRET":      "mongo_express_admin_password.txt",
+		"MONGO_EXPRESS_BASIC_AUTH_USERNAME_SECRET": "mongo_express_basic_auth_username.txt",
+		"MONGO_EXPRESS_BASIC_AUTH_PASSWORD_SECRET": "mongo_express_basic_auth_password.txt",
+	}
+	mongoURI    = "mongodb://localhost:27017"
+	mongoDbName = "infinite-craft-metrics"
+	client      *mongo.Client
+	collection  *mongo.Collection
 
 	// agent-wide shit
 	agentId string
@@ -41,6 +44,12 @@ var (
 )
 
 func init() {
+	// Check if the directory path is provided as an argument
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: go run main.go <directory path>")
+		os.Exit(1)
+	}
+
 	// Generate a new UUID
 	id := uuid.New()
 	agentId = id.String()
@@ -48,6 +57,7 @@ func init() {
 
 	preflightDgraph()
 	preflightMongoDb(agentId)
+	preflightSecrets(os.Args[1])
 }
 
 func preflightDgraph() {
@@ -69,18 +79,14 @@ func preflightDgraph() {
 			}
 		}
 	`
-
-	result, err := queryDgraph(dgraphClient, query)
+	_, err = queryDgraph(dgraphClient, query)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Print the results.
-	printJSON(result)
-	for _, node := range result["all"].([]interface{}) {
-		nodeMap := node.(map[string]interface{})
-		fmt.Printf("UID: %s, Name: %s\n", nodeMap["uid"], nodeMap["name"])
-	}
+	//printJSON(result)
+	fmt.Println("PREFLIGHT -- DGRAPGH: Dgraph db accessible as expected.")
 }
 
 func preflightMongoDb(agentId string) {
@@ -99,6 +105,32 @@ func preflightMongoDb(agentId string) {
 
 	// Get a handle for your collection
 	collection = client.Database(mongoDbName).Collection(agentId)
+	fmt.Println("PREFLIGHT -- MONGODB: MongoDB db accessible as expected.")
+}
+
+func preflightSecrets(dirPath string) {
+	// Get the absolute path of the directory.
+	absDirPath, err := filepath.Abs(dirPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check that the directory exists.
+	_, err = os.Stat(absDirPath)
+	if os.IsNotExist(err) {
+		log.Fatal(err)
+	}
+
+	// Make sure all the secrets exist.
+	for _, value := range secret_files {
+		// Construct the file path by appending the directory path and the filename
+		filePath := filepath.Join(absDirPath, value)
+		_, err = os.Stat(filePath)
+		if os.IsNotExist(err) {
+			log.Fatal(err)
+		}
+	}
+	fmt.Println("PREFLIGHT -- SECRETS: All secret files are found.")
 }
 
 func getSecret(secretName string) string {
@@ -106,7 +138,7 @@ func getSecret(secretName string) string {
 	secretsDir := "./secrets/"
 
 	// Read the secret file
-	secretFilePath := secretsDir + secretName + ".txt"
+	secretFilePath := secretsDir + secretName
 	secretBytes, err := os.ReadFile(secretFilePath)
 	if err != nil {
 		panic(err)
