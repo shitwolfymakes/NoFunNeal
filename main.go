@@ -164,6 +164,10 @@ type MetricData struct {
 }
 
 func main() {
+	preflightTests()
+}
+
+func preflightTests() {
 	// check for combos
 	comboFound := comboExists("Fire", "Water")
 	fmt.Printf("comboExists: %t\n", comboFound)
@@ -193,8 +197,10 @@ func main() {
 	printJSON(response)
 	println(metricData.UUID)
 
-	// TODO: log get response data to separate db for metrics
+	// Test sending metrics to MongoDB
 	sendMetrics(metricData)
+
+	// TODO: test storing a result from a response
 }
 
 func encodeInput(str string) string {
