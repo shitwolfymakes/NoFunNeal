@@ -138,7 +138,7 @@ func getSecret(secretName string) string {
 	secretsDir := "./secrets/"
 
 	// Read the secret file
-	secretFilePath := secretsDir + secretName
+	secretFilePath := secretsDir + secret_files[secretName]
 	secretBytes, err := os.ReadFile(secretFilePath)
 	if err != nil {
 		panic(err)
