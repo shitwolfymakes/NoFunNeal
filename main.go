@@ -26,12 +26,8 @@ var (
 
 	// mongoDB shit
 	secretFiles = map[string]string{
-		"MONGODB_ROOT_USERNAME_SECRET":             "mongodb_root_username.txt",
-		"MONGODB_ROOT_PASSWORD_SECRET":             "mongodb_root_password.txt",
-		"MONGO_EXPRESS_ADMIN_USERNAME_SECRET":      "mongo_express_admin_username.txt",
-		"MONGO_EXPRESS_ADMIN_PASSWORD_SECRET":      "mongo_express_admin_password.txt",
-		"MONGO_EXPRESS_BASIC_AUTH_USERNAME_SECRET": "mongo_express_basic_auth_username.txt",
-		"MONGO_EXPRESS_BASIC_AUTH_PASSWORD_SECRET": "mongo_express_basic_auth_password.txt",
+		"MONGODB_ROOT_USERNAME_SECRET": "mongodb_root_username.txt",
+		"MONGODB_ROOT_PASSWORD_SECRET": "mongodb_root_password.txt",
 	}
 	mongoURI    = "mongodb://localhost:27017"
 	mongoDbName = "infinite-craft-metrics"
