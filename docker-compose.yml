@@ -33,7 +33,6 @@ services:
 
   mongo:
     image: mongo:latest
-    #container_name: mongodb
     restart: always
     ports:
       - "27017:27017"
@@ -49,7 +48,6 @@ services:
       - no-fun-neal
   mongo-express:
     image: mongo-express
-    container_name: my_mongo_express
     restart: always
     ports:
       - "8081:8081"
