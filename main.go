@@ -192,7 +192,6 @@ func preflightTests() {
 		log.Fatal(err)
 	}
 	printJSON(response)
-	println(metricData.UUID)
 
 	// Test sending metrics to MongoDB
 	sendMetrics(metricData)
@@ -220,6 +219,27 @@ func preflightTests() {
 	// insert when not in there
 	insertCombo(a, b, comboResult)
 	fmt.Println("PREFLIGHT -- TESTS: COMPLETED")
+
+	// test response processing loop
+	fmt.Println("PREFLIGHT -- RESPONSE PROCESSING LOOP: STARTED")
+	// craft the url
+	a, b = "Earth", "Wind"
+	encodedUrl = craftUrl(a, b)
+	// send the request
+	response, metricData, err = sendGetRequest(encodedUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	printJSON(response)
+	// process the response
+	processResponse(a, b, response)
+	// send the metrics
+	sendMetrics(metricData)
+
+	// clean up created nodes
+	removeResult(response["result"].(string))
+	removeCombo(a, b, response["result"].(string))
+	fmt.Println("PREFLIGHT -- RESPONSE PROCESSING LOOP: STARTED")
 }
 
 func encodeInput(str string) string {
@@ -286,6 +306,13 @@ func sendMetrics(metricData MetricData) {
 	}
 }
 
+func processResponse(a, b string, response map[string]interface{}) {
+	// store result
+	insertResult(response)
+	// store combo
+	insertCombo(a, b, response["result"].(string))
+}
+
 func removeResult(name string) {
 	// get uid of result by name
 	response := getNodeByTypeAndName("Result", name)
@@ -330,7 +357,7 @@ func removeCombo(a, b, name string) {
 }
 
 func insertCombo(a, b, comboResult string) {
-	// check if result already exists
+	// check if combo already exists
 	if dupComboExists(a, b, comboResult) {
 		fmt.Printf("Combo \"%s\" already exists.\n", comboResult)
 		return
