@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -240,6 +241,16 @@ func preflightTests() {
 	removeResult(response["result"].(string))
 	removeCombo(a, b, response["result"].(string))
 	fmt.Println("PREFLIGHT -- RESPONSE PROCESSING LOOP: COMPLETED")
+
+	// get a pair of results to combine
+	a, b = getResultPair()
+	fmt.Println(a + " | " + b)
+	a, b = getResultPair()
+	fmt.Println(a + " | " + b)
+	a, b = getResultPair()
+	fmt.Println(a + " | " + b)
+	a, b = getResultPair()
+	fmt.Println(a + " | " + b)
 }
 
 func encodeInput(str string) string {
@@ -311,6 +322,45 @@ func processResponse(a, b string, response map[string]interface{}) {
 	insertResult(response)
 	// store combo
 	insertCombo(a, b, response["result"].(string))
+}
+
+func getResultPair() (string, string) {
+	// Query for the total number of nodes
+	query := `
+        {
+			count(func: type(Result)) {
+				count(uid)
+			}
+		}
+    `
+	response, err := queryDgraph(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	results := response["count"].([]interface{})
+	numNodes := int(results[0].(map[string]interface{})["count"].(float64))
+
+	// Query for two random nodes
+	return getRandomResult(numNodes), getRandomResult(numNodes)
+}
+
+func getRandomResult(numNodes int) string {
+	offset := rand.Intn(numNodes)
+	query := fmt.Sprintf(`
+		{
+			result(func: type(Result), first: 1, offset: %d) {
+				result
+			}
+		}
+	`, offset)
+	response, err := queryDgraph(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	results := response["result"].([]interface{})
+	result := results[0].(map[string]interface{})["result"].(string)
+	return result
 }
 
 func removeResult(name string) {
@@ -440,13 +490,13 @@ func insertNode(data map[string]interface{}) {
 
 func queryDgraph(query string) (map[string]interface{}, error) {
 	ctx := context.Background()
-	resp, err := dgraphClient.NewReadOnlyTxn().Query(ctx, query)
+	response, err := dgraphClient.NewReadOnlyTxn().Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
 	var result map[string]interface{}
-	if err := json.Unmarshal(resp.Json, &result); err != nil {
+	if err := json.Unmarshal(response.Json, &result); err != nil {
 		return nil, err
 	}
 
