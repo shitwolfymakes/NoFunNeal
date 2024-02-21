@@ -164,6 +164,7 @@ func main() {
 }
 
 func preflightTests() {
+	fmt.Println("PREFLIGHT -- TESTS: RUNNING TESTS")
 	// check for combos
 	comboFound := comboExists("Fire", "Water")
 	fmt.Printf("comboExists: %t\n", comboFound)
@@ -205,8 +206,13 @@ func preflightTests() {
 	removeResult(response["result"].(string))
 	// insert when not in there
 	insertResult(response)
-	// TODO: test removing a combo from a response
-	// TODO: test storing a combo from a response
+
+	// test operations on combinations
+	// insert when already in there, fail gracefully
+	// remove when already in there
+	// remove when not in there, fail gracefully
+	// insert when not in there
+	fmt.Println("PREFLIGHT -- TESTS: COMPLETED")
 }
 
 func encodeInput(str string) string {
@@ -275,7 +281,7 @@ func sendMetrics(metricData MetricData) {
 
 func removeResult(name string) {
 	// get uid of result by name
-	response := getResultNode(name)
+	response := getNodeByTypeAndName("Result", name)
 	results := response["queryResult"].([]interface{})
 	if len(results) == 0 {
 		fmt.Printf("Result \"%s\" not found in database.\n", name)
@@ -314,7 +320,7 @@ func insertResult(result map[string]interface{}) {
 	name := result["result"].(string)
 
 	// check if result already exists
-	if resultExists(name) {
+	if nodeExists("Result", name) {
 		fmt.Printf("Result \"%s\" already exists.\n", name)
 		return
 	}
@@ -377,8 +383,8 @@ func printJSON(result map[string]interface{}) {
 	fmt.Println(string(jsonData))
 }
 
-func resultExists(name string) bool {
-	response := getResultNode(name)
+func nodeExists(nodeType, name string) bool {
+	response := getNodeByTypeAndName(nodeType, name)
 
 	// if the number of combos is greater than one, return true
 	if len(response["queryResult"].([]interface{})) > 0 {
@@ -387,15 +393,15 @@ func resultExists(name string) bool {
 	return false
 }
 
-func getResultNode(name string) map[string]interface{} {
+func getNodeByTypeAndName(nodeType, name string) map[string]interface{} {
 	// construct query string
 	query := fmt.Sprintf(`
 		{
-			queryResult(func: type(Result)) @filter(((eq(result, "%s")))) {
+			queryResult(func: type("%s")) @filter(((eq(result, "%s")))) {
 				uid
 			}
 		}
-	`, name)
+	`, nodeType, name)
 
 	response, err := queryDgraph(dgraphClient, query)
 	if err != nil {
