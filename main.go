@@ -239,7 +239,7 @@ func preflightTests() {
 	// clean up created nodes
 	removeResult(response["result"].(string))
 	removeCombo(a, b, response["result"].(string))
-	fmt.Println("PREFLIGHT -- RESPONSE PROCESSING LOOP: STARTED")
+	fmt.Println("PREFLIGHT -- RESPONSE PROCESSING LOOP: COMPLETED")
 }
 
 func encodeInput(str string) string {
