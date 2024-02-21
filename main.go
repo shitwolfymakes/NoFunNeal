@@ -104,7 +104,7 @@ func preflightDgraph() {
 			}
 		}
 	`
-	_, err = queryDgraph(dgraphClient, query)
+	_, err = queryDgraph(query)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -208,10 +208,17 @@ func preflightTests() {
 	insertResult(response)
 
 	// test operations on combinations
+	a := "Water"
+	b := "Fire"
+	comboResult := "Steam"
 	// insert when already in there, fail gracefully
+	insertCombo(a, b, comboResult)
 	// remove when already in there
+	removeCombo(a, b, comboResult)
 	// remove when not in there, fail gracefully
+	removeCombo(a, b, comboResult)
 	// insert when not in there
+	insertCombo(a, b, comboResult)
 	fmt.Println("PREFLIGHT -- TESTS: COMPLETED")
 }
 
@@ -296,6 +303,51 @@ func removeResult(name string) {
 
 }
 
+func removeCombo(a, b, name string) {
+	// get uid of combo by name, A, and B
+	query := fmt.Sprintf(`
+		{
+			queryCombo(func: type(Combo)) @filter(((eq(A, "%s") AND eq(B, "%s")) AND eq(ComboResult, "%s"))) {
+				uid
+			}
+		}
+	`, a, b, name)
+	response, err := queryDgraph(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	combos := response["queryCombo"].([]interface{})
+	if len(combos) == 0 {
+		fmt.Printf("Combo \"%s\" not found in database.\n", name)
+		return
+	}
+
+	// extract uid
+	uid := combos[0].(map[string]interface{})["uid"].(string)
+	// remove node by uid
+	deleteNode(uid)
+	fmt.Printf("Combo \"%s\" removed successfully.\n", name)
+}
+
+func insertCombo(a, b, comboResult string) {
+	// check if result already exists
+	if dupComboExists(a, b, comboResult) {
+		fmt.Printf("Combo \"%s\" already exists.\n", comboResult)
+		return
+	}
+
+	// Define the data to be inserted
+	data := map[string]interface{}{
+		"dgraph.type": "Combo",
+		"A":           a,
+		"B":           b,
+		"ComboResult": comboResult,
+	}
+
+	insertNode(data)
+	fmt.Printf("Combo \"%s\" inserted successfully.\n", comboResult)
+}
+
 func deleteNode(uid string) {
 	ctx := context.Background()
 
@@ -359,9 +411,9 @@ func insertNode(data map[string]interface{}) {
 	}
 }
 
-func queryDgraph(client *dgo.Dgraph, query string) (map[string]interface{}, error) {
+func queryDgraph(query string) (map[string]interface{}, error) {
 	ctx := context.Background()
-	resp, err := client.NewReadOnlyTxn().Query(ctx, query)
+	resp, err := dgraphClient.NewReadOnlyTxn().Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -403,7 +455,7 @@ func getNodeByTypeAndName(nodeType, name string) map[string]interface{} {
 		}
 	`, nodeType, name)
 
-	response, err := queryDgraph(dgraphClient, query)
+	response, err := queryDgraph(query)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -420,7 +472,7 @@ func comboExists(a string, b string) bool {
 		}
 	`, a, b, b, a)
 
-	result, err := queryDgraph(dgraphClient, query)
+	result, err := queryDgraph(query)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -443,7 +495,7 @@ func dupComboExists(a, b, comboResult string) bool {
 		}
 	`, a, b, comboResult)
 
-	result, err := queryDgraph(dgraphClient, query)
+	result, err := queryDgraph(query)
 	if err != nil {
 		log.Fatal(err)
 	}
