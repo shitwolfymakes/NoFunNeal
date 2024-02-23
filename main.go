@@ -289,7 +289,6 @@ func main() {
 				return
 			default:
 				runLoop()
-				time.Sleep(500)
 			}
 		}
 	}()
@@ -326,6 +325,9 @@ func runLoop() {
 	// Convert the duration to milliseconds
 	elapsedTimeMilliseconds := float64(elapsedTime.Nanoseconds()) / 1000000.0
 	fmt.Printf("Elapsed time: %.2f milliseconds\n", elapsedTimeMilliseconds)
+
+	// wait here, so we only wait after an API call
+	time.Sleep(750)
 }
 
 func encodeInput(str string) string {
