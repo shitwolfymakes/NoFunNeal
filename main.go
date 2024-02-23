@@ -289,6 +289,7 @@ func main() {
 				return
 			default:
 				runLoop()
+				time.Sleep(time.Second)
 			}
 		}
 	}()
@@ -303,6 +304,7 @@ func main() {
 }
 
 func runLoop() {
+	startTime := time.Now()
 	// get a pair of results to combine
 	a, b := getResultPair()
 	fmt.Printf("Pair to be combined: %s, %s\n", a, b)
@@ -314,6 +316,16 @@ func runLoop() {
 	processResponse(a, b, response)
 	// send the metrics
 	sendMetrics(metricData)
+
+	endTime := time.Now()
+	elapsedTime := endTime.Sub(startTime)
+	// Convert the duration to milliseconds
+	elapsedTimeMilliseconds := float64(elapsedTime.Nanoseconds()) / 1000000.0
+	fmt.Printf("Elapsed time: %.2f milliseconds\n", elapsedTimeMilliseconds)
+
+	// clean up created nodes
+	removeResult(response["result"].(string))
+	removeCombo(a, b, response["result"].(string))
 }
 
 func encodeInput(str string) string {
