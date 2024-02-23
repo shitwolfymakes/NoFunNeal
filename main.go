@@ -56,6 +56,7 @@ func init() {
 	preflightSecrets(os.Args[1])
 	preflightDgraph()
 	preflightMongoDb(agentId)
+	preflightTests()
 }
 
 func preflightSecrets(dirPath string) {
@@ -149,19 +150,6 @@ func getSecret(secretName string) string {
 		panic(err)
 	}
 	return string(secretBytes)
-}
-
-type MetricData struct {
-	UUID          string
-	Result        string
-	EncodedURL    string
-	HTTPCode      int
-	ReqTimestamp  string
-	RespTimestamp string
-}
-
-func main() {
-	preflightTests()
 }
 
 func preflightTests() {
@@ -272,6 +260,19 @@ func preflightTests() {
 	removeResult(response["result"].(string))
 	removeCombo(a, b, response["result"].(string))
 	fmt.Println("PREFLIGHT -- LOOP TEST COMPLETED")
+}
+
+type MetricData struct {
+	UUID          string
+	Result        string
+	EncodedURL    string
+	HTTPCode      int
+	ReqTimestamp  string
+	RespTimestamp string
+}
+
+func main() {
+
 }
 
 func encodeInput(str string) string {
