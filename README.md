@@ -24,16 +24,16 @@ Rate limit script only reaches a 100 requests in roughly 30 secs, so DDoS isn't 
 
 Full testing with a single agent hit a rate limit of roughly 1 request/second
 
-### Api hit failure (I think he noticed me)
+### API hit failure (I think he noticed me)
 A couple of days after starting curl testing on the api, it suddenly started returning 403 errors. Turns out I needed to include User Agent String!
 
 ### What size is the problem space?
-Given the combination is of any 2 items, and we can't rule out that order doesn't matter, the potential total number of combinations are:
+Given the combination is of any 2 items and we can't rule out that order doesn't matter, the potential total number of combinations are:
 ```
 ∑,M,k=0; k!/((M−k)!M!) // the formula for total unique combinations
 ```
 
-### Algos for exhaustive search of M-to-M combinations
+### Algos for exhaustive search of M-to-M combinations?
 I present: `Bogosearch`, like Bogosort, but for searching. Maximally cursed!
 1. Select two random types
 2. Check if this combination is already stored
