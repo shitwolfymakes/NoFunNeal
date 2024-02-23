@@ -16,7 +16,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 	"time"
 )
 
@@ -272,7 +274,46 @@ type MetricData struct {
 }
 
 func main() {
+	// Channel to receive OS signals
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
+	// Channel to communicate between goroutines to end the loop
+	endLoop := make(chan bool)
+
+	// Start a goroutine to run the loop
+	go func() {
+		for {
+			select {
+			case <-endLoop:
+				return
+			default:
+				runLoop()
+			}
+		}
+	}()
+
+	// Wait for a signal
+	<-sigChan
+
+	// Send a signal to end the loop
+	endLoop <- true
+
+	fmt.Println("Program ended.")
+}
+
+func runLoop() {
+	// get a pair of results to combine
+	a, b := getResultPair()
+	fmt.Printf("Pair to be combined: %s, %s\n", a, b)
+	// craft the url
+	encodedUrl := craftUrl(a, b)
+	// send the request
+	response, metricData := sendGetRequest(encodedUrl)
+	// process the response
+	processResponse(a, b, response)
+	// send the metrics
+	sendMetrics(metricData)
 }
 
 func encodeInput(str string) string {
