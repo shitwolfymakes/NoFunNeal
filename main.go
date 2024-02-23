@@ -246,6 +246,32 @@ func preflightTests() {
 	fmt.Println(a + " | " + b)
 	a, b = getResultPair()
 	fmt.Println(a + " | " + b)
+
+	// test the completed game loop
+	fmt.Println("PREFLIGHT -- LOOP TEST")
+	startTime := time.Now()
+	// get a pair of results to combine
+	a, b = getResultPair()
+	fmt.Printf("Pair to be combined: %s, %s\n", a, b)
+	// craft the url
+	encodedUrl = craftUrl(a, b)
+	// send the request
+	response, metricData = sendGetRequest(encodedUrl)
+	// process the response
+	processResponse(a, b, response)
+	// send the metrics
+	sendMetrics(metricData)
+
+	endTime := time.Now()
+	elapsedTime := endTime.Sub(startTime)
+	// Convert the duration to milliseconds
+	elapsedTimeMilliseconds := float64(elapsedTime.Nanoseconds()) / 1000000.0
+	fmt.Printf("Elapsed time: %.2f milliseconds\n", elapsedTimeMilliseconds)
+
+	// clean up created nodes
+	removeResult(response["result"].(string))
+	removeCombo(a, b, response["result"].(string))
+	fmt.Println("PREFLIGHT -- LOOP TEST COMPLETED")
 }
 
 func encodeInput(str string) string {
@@ -285,7 +311,7 @@ func sendGetRequest(url string) (map[string]interface{}, MetricData) {
 	defer resp.Body.Close()
 
 	// Print the HTTP status code
-	fmt.Println("HTTP Status Code:", resp.StatusCode)
+	//fmt.Println("HTTP Status Code:", resp.StatusCode)
 
 	// Decode JSON response
 	var result map[string]interface{}
