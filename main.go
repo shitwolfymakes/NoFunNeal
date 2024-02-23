@@ -322,10 +322,6 @@ func runLoop() {
 	// Convert the duration to milliseconds
 	elapsedTimeMilliseconds := float64(elapsedTime.Nanoseconds()) / 1000000.0
 	fmt.Printf("Elapsed time: %.2f milliseconds\n", elapsedTimeMilliseconds)
-
-	// clean up created nodes
-	removeResult(response["result"].(string))
-	removeCombo(a, b, response["result"].(string))
 }
 
 func encodeInput(str string) string {
