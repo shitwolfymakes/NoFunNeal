@@ -289,7 +289,7 @@ func main() {
 				return
 			default:
 				runLoop()
-				time.Sleep(time.Second)
+				time.Sleep(500)
 			}
 		}
 	}()
