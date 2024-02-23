@@ -620,11 +620,11 @@ func comboExists(a string, b string) bool {
 	// get nodes with a combination of input A and B
 	query := fmt.Sprintf(`
 		{
-			queryCombo(func: type(Combo)) @filter(((eq(A, "%s") AND eq(B, "%s")) OR (eq(A, "%s") AND eq(B, "%s")))) {
+			queryCombo(func: type(Combo)) @filter(((eq(A, "%s") AND eq(B, "%s")))) {
 				uid
 			}
 		}
-	`, a, b, b, a)
+	`, a, b)
 
 	result, err := queryDgraph(query)
 	if err != nil {
