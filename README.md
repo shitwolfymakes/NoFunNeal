@@ -42,6 +42,27 @@ I present: `Bogosearch`, like Bogosort, but for searching. Maximally cursed!
 ### Publishing the data
 TBD
 
+### Abnormally long response times
+The game can sometimes take very long periods of time responding to niche combinations. For example:
+```
+Pair to be combined: Farmer Zombie, Breakfast In Bed
+Result "Nothing" inserted successfully.
+Combo "Nothing" inserted successfully.
+Elapsed time: 100627.74 milliseconds
+```
+```
+Pair to be combined: Crypto Summer, Fishing Pole
+Result "Crypto Winter" already exists.
+Combo "Crypto Winter" inserted successfully.
+Elapsed time: 79824.59 milliseconds
+```
+```
+Pair to be combined: Prom Dragon, Devil
+Result "Prom King" already exists.
+Combo "Prom King" inserted successfully.
+Elapsed time: 86221.65 milliseconds
+```
+None of these result in discoveries, it seems like Llama 2 just chokes on the input for some unknown reason.
 ## Stuff I learned
 - Golang!
 - Graph database basics, DGraph, GraphQL
