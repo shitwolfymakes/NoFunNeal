@@ -101,3 +101,12 @@
     isNew
   }
 }
+
+### QUERY COMBO NODES OF A SPECIFIC NAME
+{
+  queryCombo(func: type(Combo)) @filter(eq(ComboResult, "Steam")){
+    A
+    B
+    ComboResult
+  }
+}

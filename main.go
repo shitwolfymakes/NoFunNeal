@@ -188,10 +188,7 @@ func preflightTests() {
 	fmt.Println(encodedUrl)
 
 	// test sending a get request
-	response, metricData, err := sendGetRequest(encodedUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
+	response, metricData := sendGetRequest(encodedUrl)
 	printJSON(response)
 
 	// Test sending metrics to MongoDB
@@ -227,10 +224,7 @@ func preflightTests() {
 	a, b = "Earth", "Wind"
 	encodedUrl = craftUrl(a, b)
 	// send the request
-	response, metricData, err = sendGetRequest(encodedUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
+	response, metricData = sendGetRequest(encodedUrl)
 	printJSON(response)
 	// process the response
 	processResponse(a, b, response)
@@ -243,6 +237,7 @@ func preflightTests() {
 	fmt.Println("PREFLIGHT -- RESPONSE PROCESSING LOOP: COMPLETED")
 
 	// get a pair of results to combine
+	fmt.Println("PREFLIGHT -- RANDOM COMBINANT SELECTION")
 	a, b = getResultPair()
 	fmt.Println(a + " | " + b)
 	a, b = getResultPair()
@@ -265,11 +260,11 @@ func craftUrl(a string, b string) string {
 	return out
 }
 
-func sendGetRequest(url string) (map[string]interface{}, MetricData, error) {
+func sendGetRequest(url string) (map[string]interface{}, MetricData) {
 	// Create a new request with proper headers
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, MetricData{}, err
+		log.Fatal(err)
 	}
 	req.Header.Set("Referer", referer)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0")
@@ -285,7 +280,7 @@ func sendGetRequest(url string) (map[string]interface{}, MetricData, error) {
 	reqTime := time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, MetricData{}, err
+		log.Fatal(err)
 	}
 	defer resp.Body.Close()
 
@@ -296,7 +291,7 @@ func sendGetRequest(url string) (map[string]interface{}, MetricData, error) {
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		return nil, MetricData{}, err
+		log.Fatal(err)
 	}
 
 	metricData := MetricData{
@@ -307,7 +302,7 @@ func sendGetRequest(url string) (map[string]interface{}, MetricData, error) {
 		ReqTimestamp:  reqTime,
 		RespTimestamp: resp.Header.Get("Date"),
 	}
-	return result, metricData, nil
+	return result, metricData
 }
 
 func sendMetrics(metricData MetricData) {
