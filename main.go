@@ -308,6 +308,10 @@ func runLoop() {
 	// get a pair of results to combine
 	a, b := getResultPair()
 	fmt.Printf("Pair to be combined: %s, %s\n", a, b)
+	if comboExists(a, b) {
+		fmt.Println("This combination already exists, skipping...")
+		return
+	}
 	// craft the url
 	encodedUrl := craftUrl(a, b)
 	// send the request
