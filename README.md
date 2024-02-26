@@ -75,3 +75,4 @@ None of these result in discoveries, it seems like Llama 2 just chokes on the in
 - DGraph doesn't appear to have a way to spin up the db using a custom schema (wtf?)
 - Containerizing the agent itself was a 5-hour rabbithole of intractible networking issues. Skipped for time. Ultimately unnecessary, as the rate limit is super low.
 - Not setting the predicate types to `exact` in dgraph resulted in bad string comparison, so 18,274 extra nodes were created for the "???" result, and 1577 extra for "?"
+- "Connection reset by peer" issues seem to be solved by no longer spaming the api with the same "???" and "???" combinations
