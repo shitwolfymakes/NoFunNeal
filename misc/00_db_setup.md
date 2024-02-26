@@ -2,11 +2,11 @@
 In Schema -> Bulk Edit -> replace with the following and press "Apply Schema"
 
 ```
-<A>: string @index(fulltext, term) .
-<B>: string @index(fulltext, term) .
-<ComboResult>: string @index(fulltext, term) .
-<result>: string @index(fulltext, term) .
-<encodedName>: string @index(fulltext, term) .
+<A>: string @index(exact, fulltext) .
+<B>: string @index(exact, fulltext) .
+<ComboResult>: string @index(exact, fulltext) .
+<result>: string @index(exact, fulltext) .
+<encodedName>: string @index(exact, fulltext) .
 <emoji>: string .
 <isNew>: bool .
 type <Combo> {
