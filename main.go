@@ -283,12 +283,15 @@ func main() {
 
 	// Start a goroutine to run the loop
 	go func() {
+		var i int = 0
 		for {
 			select {
 			case <-endLoop:
 				return
 			default:
 				runLoop()
+				i++
+				fmt.Printf("Completed iteration %d\n", i)
 			}
 		}
 	}()
@@ -620,7 +623,7 @@ func comboExists(a string, b string) bool {
 	// get nodes with a combination of input A and B
 	query := fmt.Sprintf(`
 		{
-			queryCombo(func: type(Combo)) @filter(((eq(A, "%s") AND eq(B, "%s")))) {
+			queryCombo(func: type(Combo)) @filter(eq(A, "%s") AND eq(B, "%s")) {
 				uid
 			}
 		}
