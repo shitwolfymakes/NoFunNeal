@@ -3,7 +3,7 @@ module NoFunNeal
 go 1.22.0
 
 require (
-	github.com/dgraph-io/dgo/v200 v200.0.0-20210401091508-95bfd74de60e
+	github.com/dgraph-io/dgo/v210 v210.0.0-20230328113526-b66f8ae53a2d
 	github.com/google/uuid v1.4.0
 	go.mongodb.org/mongo-driver v1.14.0
 	google.golang.org/grpc v1.61.1
