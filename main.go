@@ -330,7 +330,7 @@ func runLoop() {
 	fmt.Printf("Elapsed time: %.2f milliseconds\n", elapsedTimeMilliseconds)
 
 	// wait here, so we only wait after an API call
-	time.Sleep(750)
+	time.Sleep(time.Second * 2)
 }
 
 func encodeInput(str string) string {
@@ -352,7 +352,7 @@ func sendGetRequest(url string) (map[string]interface{}, MetricData) {
 		log.Fatal(err)
 	}
 	req.Header.Set("Referer", referer)
-	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.1")
 
 	// Send the request
 	transport := &http.Transport{

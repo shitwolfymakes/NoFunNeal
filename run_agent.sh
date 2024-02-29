@@ -16,5 +16,5 @@ trap ctrl_c SIGINT
 while $RUNNING; do
     # Your code here
     go run main.go ./secrets/
-    sleep 120
+    sleep 10
 done
