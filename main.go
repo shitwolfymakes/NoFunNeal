@@ -371,6 +371,9 @@ func sendGetRequest(url string) (map[string]interface{}, MetricData) {
 
 	// Print the HTTP status code
 	//fmt.Println("HTTP Status Code:", resp.StatusCode)
+	if resp.StatusCode == 403 {
+		log.Fatal("403 error, restarting")
+	}
 
 	// Decode JSON response
 	var result map[string]interface{}
