@@ -102,7 +102,7 @@ func preflightDgraph() {
 	// Perform a test query.
 	query := `
 		{
-			all(func: has(result)) {
+			all(func: has(result)) @filter(eq(result, "Water")) {
 				uid
 				result
 			}
